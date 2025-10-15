@@ -105,7 +105,7 @@ class UserServiceTest {
     @DisplayName("Should throw ConflictException when passwords don't match")
     void registerUser_WithMismatchedPasswords_ShouldThrowConflictException() {
         // Arrange
-//        validRequest.setConfirmPassword("differentPassword");
+        validRequest.setConfirmPassword("differentPassword");
 
         // Act & Assert
         assertThatThrownBy(() -> userService.registerUser(validRequest))
