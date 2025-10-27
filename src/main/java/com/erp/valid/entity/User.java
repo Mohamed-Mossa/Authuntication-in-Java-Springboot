@@ -48,6 +48,6 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private String otp;
-    private LocalDateTime otpGeneratedTime;
+//    private String otp;
+//    private LocalDateTime otpGeneratedTime;
 }

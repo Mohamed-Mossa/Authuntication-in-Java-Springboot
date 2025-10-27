@@ -1,12 +1,11 @@
 package com.erp.valid.controller;
 
-import com.erp.valid.dto.RegisterRequest;
-import com.erp.valid.dto.UserResponse;
-import com.erp.valid.dto.VerifyOtpRequest;
+import com.erp.valid.dto.*;
 import com.erp.valid.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,8 +22,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<UserResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        UserResponse response = userService.verifyOtp(request);
+    public ResponseEntity<AuthResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        AuthResponse response = userService.verifyOtpAndGenerateToken(request);
         return ResponseEntity.ok(response);
     }
 
@@ -32,5 +31,17 @@ public class AuthController {
     public ResponseEntity<UserResponse> resendOtp(@RequestParam String email) {
         UserResponse response = userService.resendOtp(email);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = userService.login(request);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/profile")
+    public String getProfile(Authentication auth) {
+        String email = auth.getName(); // "john@test.com"
+        // Works because we set it in SecurityContextHolder!
+        return email;
     }
 }
