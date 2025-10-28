@@ -372,9 +372,9 @@ Cache Statistics - Hits: 45, Misses: 5, Hit Rate: 90.00%, Evictions: 2
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
+- GitHub: [@Mohamed-Mossa](https://github.com/Mohamed-Mossa)
+- LinkedIn: [Mohamed Mousa](https://www.linkedin.com/in/mohamed-mousa-84010225a/)
+- Email: MohamedMousa418@gmail.com
 
 ## 📄 License
 
