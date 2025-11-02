@@ -31,8 +31,20 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // H2 Console
                         .requestMatchers("/h2-console/**").permitAll()
+
+                        // Authentication Endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Swagger/OpenAPI Endpoints
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
+                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers
