@@ -26,6 +26,8 @@ public class UserService {
     private final EmailService emailService;
     private final OtpCacheService otpCacheService;
     private final JwtUtil jwtUtil;
+    private final AccountLockoutService lockoutService;
+
 
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
@@ -145,13 +147,21 @@ public class UserService {
         );
     }
 
-    @Transactional(readOnly = true)
+    @Transactional()
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ConflictException("Invalid email or password"));
-
+        // Check if account is locked
+        if (lockoutService.isAccountLocked(user)) {
+            long remainingMinutes = lockoutService.getRemainingLockTime(user);
+            log.warn("Login attempt on locked account: {}", user.getEmail());
+            throw new ConflictException(
+                    String.format("Account is locked due to multiple failed login attempts. " +
+                            "Please try again in %d minutes.", remainingMinutes)
+            );
+        }
         if (!user.isActive()) {
             throw new ConflictException("Account not verified. Please verify your email first.");
         }
@@ -162,8 +172,25 @@ public class UserService {
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("Failed login attempt for email: {}", request.getEmail());
-            throw new ConflictException("Invalid email or password");
+            lockoutService.handleFailedLogin(user);
+
+
+            int remainingAttempts = lockoutService.getRemainingAttempts(user);
+            if (remainingAttempts > 0) {
+                throw new ConflictException(
+                        String.format("Invalid email or password. %d attempts remaining.",
+                                remainingAttempts)
+                );
+            } else {
+                throw new ConflictException(
+                        "Invalid email or password. Account has been locked due to " +
+                                "multiple failed attempts."
+                );
+            }
         }
+
+// Successful login - reset failed attempts
+        lockoutService.handleSuccessfulLogin(user);
 
         String token = jwtUtil.generateToken(
                 user.getId(),

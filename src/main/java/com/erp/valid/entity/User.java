@@ -48,6 +48,44 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-//    private String otp;
-//    private LocalDateTime otpGeneratedTime;
-}
+    @Column(nullable = false)
+    private Integer failedLoginAttempts = 0;
+
+    @Column(nullable = false)
+    private boolean accountLocked = false;
+
+    private LocalDateTime lockTime;
+
+    /**
+     * Reset failed login attempts to 0
+     */
+    public void resetFailedAttempts() {
+        this.failedLoginAttempts = 0;
+        this.accountLocked = false;
+        this.lockTime = null;
+    }
+
+    /**
+     * Increment failed login attempts
+     */
+    public void incrementFailedAttempts() {
+        this.failedLoginAttempts++;
+    }
+
+    /**
+     * Lock the account
+     */
+    public void lockAccount() {
+        this.accountLocked = true;
+        this.lockTime = LocalDateTime.now();
+    }
+
+    /**
+     * Check if account lock has expired
+     */
+    public boolean isLockExpired(int lockDurationMinutes) {
+        if (!accountLocked || lockTime == null) {
+            return true;
+        }
+        return LocalDateTime.now().isAfter(lockTime.plusMinutes(lockDurationMinutes));
+    }}

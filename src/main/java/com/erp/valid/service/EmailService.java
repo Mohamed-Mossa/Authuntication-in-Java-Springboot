@@ -35,7 +35,6 @@ public class EmailService {
     @Async("taskExecutor")
     public void sendWelcomeEmail(String toEmail, String username) {
         try {
-            Thread.sleep(1000);
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom("your-email@gmail.com");
             message.setTo(toEmail);
