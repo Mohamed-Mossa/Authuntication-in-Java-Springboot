@@ -29,19 +29,20 @@ public class AccountLockoutService {
      */
     @Transactional
     public void handleFailedLogin(User user) {
-        //user.incrementFailedAttempts();
-        user.setFailedLoginAttempts(user.getFailedLoginAttempts()+1);
+        User managedUser = userRepository.findById(user.getId()).orElseThrow();
+
+        managedUser.incrementFailedAttempts();
         log.warn("Failed login attempt #{} for user: {}",
-                user.getFailedLoginAttempts(), user.getEmail());
+                user.getFailedLoginAttempts(), managedUser.getEmail());
 
 
-        if (user.getFailedLoginAttempts() >= maxFailedAttempts) {
-            user.lockAccount();
+        if (managedUser.getFailedLoginAttempts() >= maxFailedAttempts) {
+            managedUser.lockAccount();
 
             log.warn("Account locked for user: {} after {} failed attempts",
-                        user.getEmail(), maxFailedAttempts);
+                    managedUser.getEmail(), maxFailedAttempts);
         }
-        userRepository.saveAndFlush(user);
+        userRepository.saveAndFlush(managedUser);
     }
 
     /**

@@ -174,8 +174,8 @@ public class UserService {
             log.warn("Failed login attempt for email: {}", request.getEmail());
             lockoutService.handleFailedLogin(user);
 
-
-            int remainingAttempts = lockoutService.getRemainingAttempts(user);
+            User updatedUser = userRepository.findByEmail(request.getEmail()).orElseThrow();
+            int remainingAttempts = lockoutService.getRemainingAttempts(updatedUser);
             if (remainingAttempts > 0) {
                 throw new ConflictException(
                         String.format("Invalid email or password. %d attempts remaining.",

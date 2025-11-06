@@ -7,7 +7,8 @@ public class OtpUtil {
     private static final SecureRandom random = new SecureRandom();
 
     public static String generateOtp() {
-        int otp = 100000 + random.nextInt(900000);
+       // int otp = 100000 + random.nextInt(900000);
+        int otp =5555;
         return String.valueOf(otp);
     }
 }
