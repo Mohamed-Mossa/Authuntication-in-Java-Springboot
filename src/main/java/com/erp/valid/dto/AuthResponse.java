@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthResponse {
     private String token;
+    private String refreshToken;
     private String tokenType = "Bearer";
     private Long userId;
     private String username;
@@ -16,12 +17,16 @@ public class AuthResponse {
     private String role;
     private String message;
 
-    public AuthResponse(String token, Long userId, String username, String email, String role, String message) {
+    public AuthResponse(String token, Long userId, String username, String email, String role, String message,String refreshToken) {
         this.token = token;
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.role = role;
         this.message = message;
+        this.refreshToken = refreshToken;
+    }
+
+    public AuthResponse(String token, String refreshToken, Long id, String username, String email, String name, String refreshToken1) {
     }
 }

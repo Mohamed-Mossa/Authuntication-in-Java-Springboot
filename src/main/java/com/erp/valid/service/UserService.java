@@ -27,7 +27,7 @@ public class UserService {
     private final OtpCacheService otpCacheService;
     private final JwtUtil jwtUtil;
     private final AccountLockoutService lockoutService;
-
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
@@ -107,12 +107,15 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().getName()
         );
+        // 2. Generate Refresh Token (long-lived, persistent)
+        String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
 
         emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
 //        otpCacheService.logCacheStats();
 
         return new AuthResponse(
                 token,
+                refreshToken,
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -192,6 +195,10 @@ public class UserService {
 // Successful login - reset failed attempts
         lockoutService.handleSuccessfulLogin(user);
 
+        // 2. Generate Refresh Token (long-lived, persistent)
+        String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken(); // <--- NEW
+
+
         String token = jwtUtil.generateToken(
                 user.getId(),
                 user.getEmail(),
@@ -202,11 +209,51 @@ public class UserService {
 
         return new AuthResponse(
                 token,
+                refreshToken,
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole().getName(),
                 "Login successful!"
         );
+    }
+    /**
+     * Handles the refresh token request, issuing a new Access Token.
+     */
+    @Transactional
+    public TokenRefreshResponse refreshAccessToken(TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken)
+                .orElseThrow(() -> new ConflictException("Refresh token is not in database!"));
+
+        // 1. Verify token expiration
+        refreshTokenService.verifyExpiration(refreshToken);
+
+        // 2. Get user and generate new Access Token
+        User user = refreshToken.getUser();
+        String newAccessToken = jwtUtil.generateToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().getName()
+        );
+
+        // Optional: Re-issue a new Refresh Token (rotating tokens)
+        String newRefreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
+
+        log.info("Access token refreshed for user: {}", user.getEmail());
+
+        return new TokenRefreshResponse(newAccessToken, newRefreshToken, "Bearer");
+    }
+
+    /**
+     * Logout logic: deletes the refresh token from persistence.
+     */
+    @Transactional
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ConflictException("User not found"));
+
+        refreshTokenService.deleteByUserId(user.getId());
     }
 }

@@ -38,10 +38,22 @@ public class AuthController {
         AuthResponse response = userService.login(request);
         return ResponseEntity.ok(response);
     }
+    // New Endpoint for Refresh Token
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenRefreshResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+        TokenRefreshResponse response = userService.refreshAccessToken(request);
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/profile")
     public String getProfile(Authentication auth) {
         String email = auth.getName(); // "john@test.com"
         // Works because we set it in SecurityContextHolder!
         return email;
+    }
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(Authentication auth) {
+        // Assume auth.getName() is the email, use it to find the user/ID
+        userService.logout(auth.getName());
+        return ResponseEntity.ok("Logged out successfully. Token removed.");
     }
 }
