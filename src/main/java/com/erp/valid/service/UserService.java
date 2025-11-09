@@ -109,7 +109,7 @@ public class UserService {
         );
 
         emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
-        otpCacheService.logCacheStats();
+//        otpCacheService.logCacheStats();
 
         return new AuthResponse(
                 token,
